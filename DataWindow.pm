@@ -13,6 +13,7 @@ sub new {
 	my $class = shift;
     my $self = {};
     bless $self, $class;
+    
     return $self;
 }
 
@@ -33,18 +34,75 @@ sub parse {
     	die $parser->{error};
 	}
     my $parsed = $parser->{recce}->value();
-    my $retrieve = ${$parsed}->{table}->{retrieve};
-	if($retrieve =~ /PBSELECT/){
+    Dumper(${$parsed}) if DEBUG;
+    my $select = ${$parsed}->{table}->{retrieve};
+	if($select =~ /PBSELECT/){
     	use MarpaX::Languages::PowerBuilder::PBSelect;
-        my $PBparser = MarpaX::Languages::PowerBuilder::PBSelect::parse($retrieve);
+        my $PBparser = MarpaX::Languages::PowerBuilder::PBSelect::parse($select);
 #		say $PBparser->{error} if $PBparser->{error};
         my $ast = $PBparser->{recce}->value;
 #        Dumper(${$ast});
-		$retrieve = MarpaX::Languages::PowerBuilder::PBSelect::to_sql(${$ast});
+		$select = MarpaX::Languages::PowerBuilder::PBSelect::to_sql(${$ast});
     }
-#    say "select = $retrieve";
-	$self->{select} = $retrieve;
-	
+    say "select = $select" if DEBUG;
+	$self->{select} = $select;
+    $self->{sele} = ();
+    
+    #get the selected columns
+#    my $j=1;
+#    foreach ($select =~ /([\w_\d]+)\s*(?:,|FROM)/g){
+#        $self->{sele}{lc $_} = $j;
+##        s/t[^_]+_//g;
+##        $self->{sele}{lc $_} = $j;
+#        $j++;
+#	}
+
+	my $sel_cols;
+	my @sel_lines = split(/\n/, $select);
+    foreach (@sel_lines){
+    	if (/^\s*SELECT/i .. /\s*FROM\s+/i){
+            chomp;
+            $sel_cols .= $_;
+            #~ if(/^((?:\w|.|")+),$/){
+                #~ $sele{$1} = $j;
+                #~ $j++;
+            #~ }
+        }
+    }
+    $sel_cols =~ s/~"//g;					#clean escaped quotes
+  	#get the selected columns
+    my $j=1;
+    foreach ($sel_cols =~ /([\w_\d]+)\s*(?:,|FROM)/g){
+        $self->{sele}{lc $_} = $j;
+#        s/t[^_]+_//g;
+#        $sele{lc $_} = $j;
+        $j++;
+    }
+
+#	Dumper(${$parsed}->{columns});
+	$self->{ctrls} = ${$parsed}->{columns};
+    
+    $self->{data} = ${$parsed}->{table}{columns};
+}
+
+sub select {
+	my $self = shift;
+    return $self->{select};
+}
+
+sub select_columns {
+	my $self = shift;
+	return $self->{sele};
+}
+
+sub control_columns {
+	my $self = shift;
+    return $self->{ctrls};
+}
+
+sub column_definitions {
+	my $self = shift;
+    return $self->{data};
 }
 
 1;
