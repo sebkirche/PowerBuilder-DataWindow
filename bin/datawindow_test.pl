@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use feature 'say';
-use DataWindow;
+use PowerBuilder::DataWindow;
 use File::Slurp qw(slurp);
 #use Data::Dumper::GUI;
 use Data::Dumper;
@@ -12,7 +12,7 @@ my $file = shift || die "usage : $0 <file.srd>";
 die unless -f $file;
 
 my $data = slurp($file);
-my $dw = DataWindow->new();
+my $dw = PowerBuilder::DataWindow->new();
 $dw->parse($data);
 
 
