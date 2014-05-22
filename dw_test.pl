@@ -20,13 +20,14 @@ say "Select from DB is: ". $dw->select;
 
 #say Dumper(\$dw->select_columns);
 say "SELECTed columns are:";
-say "    " . $_ foreach (keys $dw->select_columns);
+my $selected = $dw->select_columns;
+say "    " . $_ . " #" . $selected->{$_} foreach sort { $selected->{$a} <=> $selected->{$b} } keys $selected;
 
 say "Columns definitions are:";
-say "    " . $_ . "\t" . ${$dw->column_definitions}{$_}{type} foreach keys $dw->column_definitions;
+say "    " . $_->{name} . " type=" . $_->{type} . " #" . $_->{'#'} foreach sort { $a->{'#'} <=> $b->{'#'} } values $dw->column_definitions;
 
 say "Columns controls are:";
-my @cols = keys $dw->control_columns; 
-foreach (@cols){
-	say "    " . $_ . "\tx=" . ${$dw->control_columns}{$_}{x};
-}
+say "    " . $_->{name} . " id=" . $_->{id} . " x=" . $_->{x} foreach sort { $a->{'id'} <=> $b->{'id'} } $dw->column_controls;
+
+say "Texts controls are:";
+say "    " . $_->{name} . " x=" . $_->{x} . " y=" . $_->{y} foreach sort { $a->{y} <=> $b->{y} || $a->{x} <=> $b->{x} } $dw->text_controls;

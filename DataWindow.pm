@@ -80,9 +80,9 @@ sub parse {
     }
 
 #	Dumper(${$parsed}->{columns});
-	$self->{ctrls} = ${$parsed}->{columns};
+	$self->{controls} = ${$parsed}->{controls};
     
-    $self->{data} = ${$parsed}->{table}{columns};
+    $self->{datacolumns} = ${$parsed}->{table}{columns};
 }
 
 sub select {
@@ -95,14 +95,25 @@ sub select_columns {
 	return $self->{sele};
 }
 
-sub control_columns {
+sub controls {
 	my $self = shift;
-    return $self->{ctrls};
+    my $type = shift;
+    return grep { $_->{type} =~ /$type/ } values $self->{controls};
+}
+
+sub column_controls {
+	my $self = shift;
+    return $self->controls("column");
+}
+
+sub text_controls {
+	my $self = shift;
+    return $self->controls("text");
 }
 
 sub column_definitions {
 	my $self = shift;
-    return $self->{data};
+    return $self->{datacolumns};
 }
 
 1;
