@@ -103,7 +103,7 @@ sub select_columns {
 sub controls {
 	my $self = shift;
     my $type = shift;
-    return grep { $_->{type} =~ /$type/ } values $self->{controls};
+    return [ grep { $_->{type} =~ /$type/ } values $self->{controls} ];
 }
 
 sub column_controls {
