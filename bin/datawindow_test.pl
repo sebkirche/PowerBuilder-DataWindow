@@ -16,18 +16,30 @@ my $dw = PowerBuilder::DataWindow->new();
 $dw->parse($data);
 
 
-say "Select from DB is: ". $dw->select;
+if($dw->select){
+	say "Select from DB is: ". $dw->select;
+} else {
+	say "Datawindow external (no SELECT)";
+}
 
 #say Dumper(\$dw->select_columns);
-say "SELECTed columns are:";
 my $selected = $dw->select_columns;
-say "    " . $_ . " #" . $selected->{$_} foreach sort { $selected->{$a} <=> $selected->{$b} } keys $selected;
+if ($selected){
+	say "SELECTed columns are:";
+	say sprintf("    #%-3d ", $selected->{$_}) . $_ foreach sort { $selected->{$a} <=> $selected->{$b} } keys $selected;
+} else {
+	say "No selected column.";
+}
 
-say "Columns definitions are:";
-say "    " . $_->{name} . " type=" . $_->{type} . " #" . $_->{'#'} foreach sort { $a->{'#'} <=> $b->{'#'} } values $dw->column_definitions;
+say "Columns definitions:";
+say sprintf("    #%-3d ", $_->{'#'}) . $_->{name} . " type=" . $_->{type} foreach sort { $a->{'#'} <=> $b->{'#'} } values $dw->column_definitions;
 
 say "Columns controls are:";
 say "    " . $_->{name} . " id=" . $_->{id} . " x=" . $_->{x} foreach sort { $a->{'id'} <=> $b->{'id'} } $dw->column_controls;
 
-say "Texts controls are:";
-say "    " . $_->{name} . " x=" . $_->{x} . " y=" . $_->{y} foreach sort { $a->{y} <=> $b->{y} || $a->{x} <=> $b->{x} } $dw->text_controls;
+if ($dw->text_controls){
+	say "Texts controls are:";
+	say "    " . $_->{name} . " x=" . $_->{x} . " y=" . $_->{y} foreach sort { $a->{y} <=> $b->{y} || $a->{x} <=> $b->{x} } $dw->text_controls;
+    } else {
+    	say "No text control.";
+    }
