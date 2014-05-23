@@ -4,11 +4,11 @@ use strict;
 use warnings;# FATAL => 'all';
 
 use feature 'say';
-use File::Slurp qw(read_file);
+use File::Slurp qw(slurp read_file);
 use MarpaX::Languages::PowerBuilder::SRD;
 use Data::Dumper::GUI;
 
-use constant DEBUG=> 0;
+use constant DEBUG => 1;
 
 sub new {
 	my $class = shift;
@@ -24,11 +24,13 @@ sub parse {
 	my $self = shift;
     my $input = shift;
 	
-#    say "parsing $input" if DEBUG;
-    
-    #file or dw content ? if file, replace by content
-    #do not use -f directly or it will show a warning when given the DW content : Unsuccessful stat on filename containing newline
-    if ($input !~ /\n/ and -f $input) { $input = read_file($input); }
+    #3 ways to pass input: glob, file-name, full-string
+    if(ref $input eq 'GLOB'){
+        $input = do{ local $/; <$input> };
+    }
+    elsif($input!~/\n/ && -f $input){	#do not use -f directly or it will show a warning when given the DW content : Unsuccessful stat on filename containing newline
+        $input = slurp $input;
+    }    
     
     my $parser = MarpaX::Languages::PowerBuilder::SRD::parse($input);
 	if($parser->{error}){
@@ -42,15 +44,15 @@ sub parse {
 	if($select){
     	if($select =~ /PBSELECT/){
             use MarpaX::Languages::PowerBuilder::SRQ;
-            my $PBparser = MarpaX::Languages::PowerBuilder::SRQ::parse($select);
-    #		say $PBparser->{error} if $PBparser->{error};
-            my $ast = $PBparser->{recce}->value;
-    #        Dumper(${$ast});
-            $select = MarpaX::Languages::PowerBuilder::SRQ::sql(${$ast});
+            my $PBparser = MarpaX::Languages::PowerBuilder::SRQ::parse_inline_query($select);
+            $select = $PBparser->sql();
+            say "converted select = $select" if DEBUG;
         }
         say "select = $select" if DEBUG;
         $self->{select} = $select;
     
+    
+    #========= This sections needs rewriting in order to get properly the columns ===================
     
         #get the selected columns
     #    my $j=1;
@@ -66,6 +68,7 @@ sub parse {
         foreach (@sel_lines){
             if (/^\s*SELECT/i .. /\s*FROM\s+/i){
                 chomp;
+#                say " one column: $_" if DEBUG;
                 $sel_cols .= $_;
                 #~ if(/^((?:\w|.|")+),$/){
                     #~ $sele{$1} = $j;
@@ -73,15 +76,21 @@ sub parse {
                 #~ }
             }
         }
-        $sel_cols =~ s/~"//g;					#clean escaped quotes
+        $sel_cols =~ s/~"//g;			#clean escaped quotes
+        $sel_cols =~ s/[\w_\d]+\.//g;	#clean owner prefix
+
         #get the selected columns
         my $j=1;
-        foreach ($sel_cols =~ /([\w_\d]+)\s*(?:,|FROM)/g){
+        foreach ($sel_cols =~ /(?:SELECT)?\s*([\w_\d]+)\s*(?:,|FROM)?/ig){
+            say " one column: $_" if DEBUG;
             $self->{sele}{lc $_} = $j;
     #        s/t[^_]+_//g;
     #        $sele{lc $_} = $j;
             $j++;
         }
+        
+        #============================================================================
+        
     }
 
 #	Dumper(${$parsed}->{columns});
