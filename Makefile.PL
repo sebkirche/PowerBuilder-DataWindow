@@ -1,11 +1,11 @@
-use 5.006;
+﻿use 5.010;
 use strict;
 use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME             => 'PowerBuilder::DataWindow',
-    AUTHOR           => q{S�bastien Kirche <sebastien.kirche@free.fr>},
+    AUTHOR           => q{Sébastien Kirche <sebastien.kirche@free.fr>},
     VERSION_FROM     => 'lib/PowerBuilder/DataWindow.pm',
     ABSTRACT_FROM    => 'lib/PowerBuilder/DataWindow.pm',
     LICENSE          => 'mit',
