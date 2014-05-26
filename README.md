@@ -1,7 +1,7 @@
 PowerBuilder::DataWindow
 ========================
 
-PoweBuilder datawindows helpers and diagnostics in Perl, based on [MarpaX::Languages::Powerbuilder](http://github.com/sebkirche/MarpaX-Languages-PowerBuilder) Marpa parsers (see my other repository).
+PowerBuilder datawindows helpers and diagnostics in Perl, based on [MarpaX::Languages::Powerbuilder](http://github.com/sebkirche/MarpaX-Languages-PowerBuilder) Marpa parsers (see my other repository).
 
 
 INSTALLATION
@@ -30,6 +30,6 @@ You can also look for information at:
 LICENSE AND COPYRIGHT
 ---------------------
 
-Copyright (C) 2014 Sebastien Kirche
+Copyright (C) 2014 Sébastien Kirche
 
 The MIT License (MIT)
