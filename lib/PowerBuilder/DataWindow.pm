@@ -32,7 +32,7 @@ sub parse {
         $input = slurp $input;
     }    
     
-    my $parser = MarpaX::Languages::PowerBuilder::SRD::parse($input);
+    my $parser = MarpaX::Languages::PowerBuilder::SRD->new->parse($input);
 	if($parser->{error}){
     	die $parser->{error};
 	}
@@ -112,7 +112,7 @@ sub select_columns {
 sub controls {
 	my $self = shift;
     my $type = shift;
-    return [ grep { $_->{type} =~ /$type/ } values $self->{controls} ];
+    return [ grep { $_->{type} =~ /$type/ } values %{$self->{controls}} ];
 }
 
 sub column_controls {
