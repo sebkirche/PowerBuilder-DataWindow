@@ -8,14 +8,19 @@ use File::Slurp qw(slurp read_file);
 use MarpaX::Languages::PowerBuilder::SRD;
 use Data::Dumper::GUI;
 
-use constant DEBUG => 1;
+my $_debug;
+sub DEBUG { $_debug; }
 
 sub new {
 	my $class = shift;
-    my $self = {};
-    bless $self, $class;
+    my %params = @_; 
     
-    return $self;
+    my $self = {};
+    if (%params){
+        $_debug = $params{DEBUG};
+    }
+    
+    return bless $self, $class;
 }
 
 $| = 1;
@@ -28,7 +33,7 @@ sub parse {
     if(ref $input eq 'GLOB'){
         $input = do{ local $/; <$input> };
     }
-    elsif($input!~/\n/ && -f $input){	#do not use -f directly or it will show a warning when given the DW content : Unsuccessful stat on filename containing newline
+    elsif($input !~ /\n/ && -f $input){	#do not use -f directly or it will show a warning when given the DW content : Unsuccessful stat on filename containing newline
         $input = slurp $input;
     }    
     
@@ -38,13 +43,14 @@ sub parse {
 	}
     my $parsed = $parser->{recce}->value();
     Dumper(${$parsed}) if DEBUG;
+    $self->{parsed} = ${$parsed};
     
     $self->{sele} = ();
     my $select = ${$parsed}->{table}->{retrieve};
 	if($select){
     	if($select =~ /PBSELECT/){
             use MarpaX::Languages::PowerBuilder::SRQ;
-            my $PBparser = MarpaX::Languages::PowerBuilder::SRQ::parse_inline_query($select);
+            my $PBparser = MarpaX::Languages::PowerBuilder::SRQ->new->parse_inline_query($select);
             $select = $PBparser->sql();
             say "converted select = $select" if DEBUG;
         }
@@ -94,9 +100,11 @@ sub parse {
     }
 
 #	Dumper(${$parsed}->{columns});
-	$self->{controls} = ${$parsed}->{controls};
+#	$self->{controls} = ${$parsed}->{controls};
     
-    $self->{datacolumns} = ${$parsed}->{table}{columns};
+#    $self->{datacolumns} = ${$parsed}->{table}{columns};
+    
+#    $self->{dw_properties} = ${$parsed}->{datawindow};
 }
 
 sub select {
@@ -112,7 +120,7 @@ sub select_columns {
 sub controls {
 	my $self = shift;
     my $type = shift;
-    return [ grep { $_->{type} =~ /$type/ } values %{$self->{controls}} ];
+    return [ grep { $_->{type} =~ /$type/ } values %{$self->{parsed}->{controls}} ];
 }
 
 sub column_controls {
@@ -127,8 +135,15 @@ sub text_controls {
 
 sub column_definitions {
 	my $self = shift;
-    return $self->{datacolumns};
+    $DB::single=1;
+    return $self->{parsed}->{table}->{columns};
 }
+
+sub properties {
+	my $self = shift;
+    return $self->{parsed}->{datawindow};
+}
+
 
 =encoding utf8
 
